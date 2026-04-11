@@ -1,0 +1,27 @@
+[workspace]
+members = [
+    "contracts/agent-wallet",
+    "contracts/privacy-pool",
+    "libs/lean-imt",
+    "libs/zk",
+    "cli/coinutils",
+]
+resolver = "2"
+
+[workspace.dependencies]
+soroban-sdk = "25.0.0-rc.1"
+soroban-poseidon = "25.0.0-rc.1"
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = false
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
+
+[profile.release-with-logs]
+inherits = "release"
+debug-assertions = true

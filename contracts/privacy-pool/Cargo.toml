@@ -1,0 +1,21 @@
+[package]
+name = "privacy-pool"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+lean-imt = { path = "../../libs/lean-imt" }
+zk = { path = "../../libs/zk" }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+hex = "0.4.3"
+ark-serialize = { version = "0.4.2" }
+ark-ec = { version = "0.4.2" }
+ark-bls12-381 = { version = "0.4.0" }
