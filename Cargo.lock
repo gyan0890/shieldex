@@ -247,6 +247,12 @@ checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
 
 [[package]]
 name = "base64"
+version = "0.21.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
+
+[[package]]
+name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
@@ -339,6 +345,25 @@ dependencies = [
  "num-traits",
  "serde",
  "windows-link",
+]
+
+[[package]]
+name = "circom2soroban"
+version = "0.1.0"
+dependencies = [
+ "ark-bls12-381",
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "base64 0.21.7",
+ "clap",
+ "hex",
+ "num-bigint",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "soroban-sdk",
+ "zk",
 ]
 
 [[package]]
@@ -1565,7 +1590,7 @@ version = "3.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd5414fad8e6907dbdd5bc441a50ae8d6e26151a03b1de04d89a5576de61d01f"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "chrono",
  "hex",
  "indexmap 1.9.3",
@@ -1820,7 +1845,7 @@ version = "25.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa02e07f507cc27406ae0834db4dcf309b78c4cc8776eb3b2d662d66e8859d25"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "sha2",
  "stellar-xdr",
  "thiserror",
@@ -1912,7 +1937,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10d20dafed80076b227d4b17c0c508a4bbc4d5e4c3d4c1de7cd42242df4b1eaf"
 dependencies = [
  "arbitrary",
- "base64",
+ "base64 0.22.1",
  "cfg_eval",
  "crate-git-revision",
  "escape-bytes",

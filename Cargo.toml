@@ -5,6 +5,7 @@ members = [
     "libs/lean-imt",
     "libs/zk",
     "cli/coinutils",
+    "cli/circom2soroban",
 ]
 resolver = "2"
 
