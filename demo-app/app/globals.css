@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #070b0f;
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0f1923; }
+::-webkit-scrollbar-thumb { background: #1e3a4a; border-radius: 2px; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in { animation: slideIn 0.3s ease-out; }
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 4px #00d4ff44; }
+  50%       { box-shadow: 0 0 12px #00d4ff88; }
+}
+.glow { animation: glow 2s ease-in-out infinite; }
