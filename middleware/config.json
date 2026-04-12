@@ -1,0 +1,18 @@
+{
+  "policy": {
+    "max_per_tx": 0.50,
+    "daily_cap": 5.00,
+    "currency": "USDC",
+    "allowed_destinations": [
+      "GBWEATHERAPIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "GBFLIGHTDATAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "GBNEWSAPIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    ],
+    "_notes": {
+      "max_per_tx": "Max USDC per single transaction. Matches contract: 5_000_000 stroops",
+      "daily_cap": "Max USDC per rolling calendar day UTC. Matches contract: 50_000_000 stroops",
+      "allowed_destinations": "Stellar G-addresses only. Use [\"*\"] to allow any recipient.",
+      "currency": "Token used for all payments — must match the token passed to the contract constructor"
+    }
+  }
+}
