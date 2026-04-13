@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { callSorobanPay, type PayResult } from "@/lib/soroban";
 
 // Venice AI uses an OpenAI-compatible API — just point to their base URL
 const client = new OpenAI({
@@ -9,45 +10,24 @@ const client = new OpenAI({
 // Model with function-calling support on Venice
 const MODEL = "llama-3.3-70b";
 
-// ── ShieldEx middleware config ─────────────────────────────────────────────────
-const MIDDLEWARE_URL =
-  process.env.NEXT_PUBLIC_MIDDLEWARE_URL ?? "http://localhost:3001";
-
 // The one whitelisted payment destination in the on-chain policy
 const AGENT_RECIPIENT =
   process.env.NEXT_PUBLIC_AGENT_RECIPIENT ??
   "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN";
 
 // ── ShieldEx payment call ──────────────────────────────────────────────────────
-interface PayResult {
-  status: "approved" | "rejected";
-  tx_hash?: string;
-  nullifier_hash?: string;
-  rejection_code?: string;
-  reason?: string;
-  daily_spent?: number;
-  daily_remaining?: number;
-}
-
+// Calls Soroban directly (no HTTP round-trip) — works on Vercel serverless.
 async function callShieldExPay(
   amount: number,
   reason: string
 ): Promise<PayResult> {
   try {
-    const resp = await fetch(`${MIDDLEWARE_URL}/pay`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, recipient: AGENT_RECIPIENT, reason }),
-      signal: AbortSignal.timeout(35_000), // 35s — enough for tx confirmation
-    });
-    const data = (await resp.json()) as PayResult;
-    return data;
+    return await callSorobanPay(amount, AGENT_RECIPIENT, reason);
   } catch (err) {
-    // Middleware offline or network error — don't crash the planning session
     console.warn("[ShieldEx] Payment call failed:", err);
     return {
       status: "rejected",
-      rejection_code: "MIDDLEWARE_UNREACHABLE",
+      rejection_code: "SOROBAN_ERROR",
       reason: String(err),
     };
   }
@@ -438,7 +418,10 @@ Please research this trip thoroughly using all available tools, then create a co
           messages.push(message);
 
           // Execute each tool + call ShieldEx middleware for payment
-          for (const toolCall of message.tool_calls) {
+          const functionToolCalls = (
+            message.tool_calls as OpenAI.Chat.ChatCompletionMessageToolCall[]
+          ).filter((tc) => tc.type === "function");
+          for (const toolCall of functionToolCalls) {
             const toolName = toolCall.function.name;
             const toolInput = JSON.parse(toolCall.function.arguments || "{}") as Record<string, unknown>;
             const toolCost = TOOL_COST[toolName] ?? 0.005;
