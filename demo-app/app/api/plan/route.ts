@@ -1,8 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+// Venice AI uses an OpenAI-compatible API — just point to their base URL
+const client = new OpenAI({
+  apiKey: process.env.VENICE_API_KEY ?? "",
+  baseURL: "https://api.venice.ai/api/v1",
 });
+
+// Model with function-calling support on Venice
+const MODEL = "llama-3.3-70b";
 
 // ── ShieldEx middleware config ─────────────────────────────────────────────────
 const MIDDLEWARE_URL =
@@ -35,7 +40,7 @@ async function callShieldExPay(
       body: JSON.stringify({ amount, recipient: AGENT_RECIPIENT, reason }),
       signal: AbortSignal.timeout(35_000), // 35s — enough for tx confirmation
     });
-    const data = await resp.json() as PayResult;
+    const data = (await resp.json()) as PayResult;
     return data;
   } catch (err) {
     // Middleware offline or network error — don't crash the planning session
@@ -48,108 +53,130 @@ async function callShieldExPay(
   }
 }
 
-// Travel tool definitions — each represents a paid API the agent calls
-const travelTools: Anthropic.Tool[] = [
+// Travel tool definitions — OpenAI function-calling format
+const travelTools: OpenAI.Chat.ChatCompletionTool[] = [
   {
-    name: "search_flights",
-    description:
-      "Search for available flights between two cities. Returns flight options with prices, airlines, and durations.",
-    input_schema: {
-      type: "object",
-      properties: {
-        origin: { type: "string", description: "Origin city or airport code" },
-        destination: { type: "string", description: "Destination city or airport code" },
-        date: { type: "string", description: "Departure date (YYYY-MM-DD)" },
-        return_date: { type: "string", description: "Return date for round trips (YYYY-MM-DD)" },
-        passengers: { type: "number", description: "Number of passengers" },
+    type: "function",
+    function: {
+      name: "search_flights",
+      description:
+        "Search for available flights between two cities. Returns flight options with prices, airlines, and durations.",
+      parameters: {
+        type: "object",
+        properties: {
+          origin: { type: "string", description: "Origin city or airport code" },
+          destination: { type: "string", description: "Destination city or airport code" },
+          date: { type: "string", description: "Departure date (YYYY-MM-DD)" },
+          return_date: { type: "string", description: "Return date for round trips (YYYY-MM-DD)" },
+          passengers: { type: "number", description: "Number of passengers" },
+        },
+        required: ["origin", "destination", "date", "passengers"],
       },
-      required: ["origin", "destination", "date", "passengers"],
     },
   },
   {
-    name: "search_hotels",
-    description:
-      "Search for available hotels at a destination. Returns hotels with ratings, amenities, and nightly rates.",
-    input_schema: {
-      type: "object",
-      properties: {
-        city: { type: "string", description: "City to search hotels in" },
-        check_in: { type: "string", description: "Check-in date (YYYY-MM-DD)" },
-        check_out: { type: "string", description: "Check-out date (YYYY-MM-DD)" },
-        guests: { type: "number", description: "Number of guests" },
-        max_price_per_night: { type: "number", description: "Maximum price per night in USD" },
+    type: "function",
+    function: {
+      name: "search_hotels",
+      description:
+        "Search for available hotels at a destination. Returns hotels with ratings, amenities, and nightly rates.",
+      parameters: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "City to search hotels in" },
+          check_in: { type: "string", description: "Check-in date (YYYY-MM-DD)" },
+          check_out: { type: "string", description: "Check-out date (YYYY-MM-DD)" },
+          guests: { type: "number", description: "Number of guests" },
+          max_price_per_night: { type: "number", description: "Maximum price per night in USD" },
+        },
+        required: ["city", "check_in", "check_out", "guests"],
       },
-      required: ["city", "check_in", "check_out", "guests"],
     },
   },
   {
-    name: "get_weather_forecast",
-    description:
-      "Get weather forecast for a city during specified dates. Returns temperature, conditions, and packing recommendations.",
-    input_schema: {
-      type: "object",
-      properties: {
-        city: { type: "string", description: "City name" },
-        start_date: { type: "string", description: "Start date (YYYY-MM-DD)" },
-        end_date: { type: "string", description: "End date (YYYY-MM-DD)" },
+    type: "function",
+    function: {
+      name: "get_weather_forecast",
+      description:
+        "Get weather forecast for a city during specified dates. Returns temperature, conditions, and packing recommendations.",
+      parameters: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "City name" },
+          start_date: { type: "string", description: "Start date (YYYY-MM-DD)" },
+          end_date: { type: "string", description: "End date (YYYY-MM-DD)" },
+        },
+        required: ["city", "start_date", "end_date"],
       },
-      required: ["city", "start_date", "end_date"],
     },
   },
   {
-    name: "search_activities",
-    description:
-      "Find tourist activities, attractions, and experiences at a destination.",
-    input_schema: {
-      type: "object",
-      properties: {
-        city: { type: "string", description: "City name" },
-        interests: { type: "string", description: "Types of activities (e.g., food, art, outdoor, nightlife)" },
-        budget_per_person: { type: "number", description: "Budget per person per day in USD" },
+    type: "function",
+    function: {
+      name: "search_activities",
+      description: "Find tourist activities, attractions, and experiences at a destination.",
+      parameters: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "City name" },
+          interests: { type: "string", description: "Types of activities (e.g., food, art, outdoor, nightlife)" },
+          budget_per_person: { type: "number", description: "Budget per person per day in USD" },
+        },
+        required: ["city", "interests"],
       },
-      required: ["city", "interests"],
     },
   },
   {
-    name: "search_restaurants",
-    description:
-      "Find top-rated restaurants at the destination based on cuisine preferences and budget.",
-    input_schema: {
-      type: "object",
-      properties: {
-        city: { type: "string", description: "City name" },
-        cuisine_type: { type: "string", description: "Preferred cuisine type" },
-        price_range: { type: "string", enum: ["budget", "mid-range", "fine-dining"], description: "Price range preference" },
+    type: "function",
+    function: {
+      name: "search_restaurants",
+      description: "Find top-rated restaurants at the destination based on cuisine preferences and budget.",
+      parameters: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "City name" },
+          cuisine_type: { type: "string", description: "Preferred cuisine type" },
+          price_range: {
+            type: "string",
+            enum: ["budget", "mid-range", "fine-dining"],
+            description: "Price range preference",
+          },
+        },
+        required: ["city"],
       },
-      required: ["city"],
     },
   },
   {
-    name: "check_visa_requirements",
-    description:
-      "Check visa and entry requirements for traveling from one country to another.",
-    input_schema: {
-      type: "object",
-      properties: {
-        from_country: { type: "string", description: "Traveler's home country" },
-        to_country: { type: "string", description: "Destination country" },
+    type: "function",
+    function: {
+      name: "check_visa_requirements",
+      description: "Check visa and entry requirements for traveling from one country to another.",
+      parameters: {
+        type: "object",
+        properties: {
+          from_country: { type: "string", description: "Traveler's home country" },
+          to_country: { type: "string", description: "Destination country" },
+        },
+        required: ["from_country", "to_country"],
       },
-      required: ["from_country", "to_country"],
     },
   },
   {
-    name: "calculate_budget_breakdown",
-    description:
-      "Calculate a detailed budget breakdown for the entire trip including flights, hotels, activities, and food.",
-    input_schema: {
-      type: "object",
-      properties: {
-        total_budget: { type: "number", description: "Total budget in USD" },
-        num_days: { type: "number", description: "Number of days" },
-        num_travelers: { type: "number", description: "Number of travelers" },
-        destination: { type: "string", description: "Destination city" },
+    type: "function",
+    function: {
+      name: "calculate_budget_breakdown",
+      description:
+        "Calculate a detailed budget breakdown for the entire trip including flights, hotels, activities, and food.",
+      parameters: {
+        type: "object",
+        properties: {
+          total_budget: { type: "number", description: "Total budget in USD" },
+          num_days: { type: "number", description: "Number of days" },
+          num_travelers: { type: "number", description: "Number of travelers" },
+          destination: { type: "string", description: "Destination city" },
+        },
+        required: ["total_budget", "num_days", "num_travelers", "destination"],
       },
-      required: ["total_budget", "num_days", "num_travelers", "destination"],
     },
   },
 ];
@@ -315,17 +342,20 @@ function executeTool(name: string, input: Record<string, unknown>): string {
         api_provider: "Internal Budget Calculator",
         cost_usd: TOOL_COST.calculate_budget_breakdown,
         breakdown: {
-          flights: Math.round(budget * 0.40),
-          accommodation: Math.round(budget * 0.30),
+          flights: Math.round(budget * 0.4),
+          accommodation: Math.round(budget * 0.3),
           activities: Math.round(budget * 0.15),
-          food: Math.round(budget * 0.10),
+          food: Math.round(budget * 0.1),
           transport_local: Math.round(budget * 0.03),
           miscellaneous: Math.round(budget * 0.02),
           per_day_budget: Math.round(budget / days),
           per_person_per_day: Math.round(budget / days / travelers),
         },
         currency: "USD",
-        feasibility: budget >= 1500 ? "Comfortable trip possible" : "Budget trip possible with careful planning",
+        feasibility:
+          budget >= 1500
+            ? "Comfortable trip possible"
+            : "Budget trip possible with careful planning",
       });
     }
 
@@ -335,11 +365,16 @@ function executeTool(name: string, input: Record<string, unknown>): string {
 }
 
 export async function POST(req: Request) {
-  const { from, to, startDate, endDate, budget, travelers, interests } = await req.json();
+  const { from, to, startDate, endDate, budget, travelers, interests } =
+    await req.json();
 
-  const numDays = startDate && endDate
-    ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
-    : 7;
+  const numDays =
+    startDate && endDate
+      ? Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 7;
 
   const systemPrompt = `You are an autonomous AI travel planning agent. You help users plan complete trips by calling specialized travel APIs (tools) to gather real-time data.
 
@@ -360,7 +395,9 @@ Be thorough — call multiple tools, gather real information, then synthesize it
 
 Please research this trip thoroughly using all available tools, then create a complete day-by-day itinerary.`;
 
-  const messages: Anthropic.MessageParam[] = [
+  // OpenAI-compatible message history
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
     { role: "user", content: userMessage },
   ];
 
@@ -373,77 +410,65 @@ Please research this trip thoroughly using all available tools, then create a co
       };
 
       try {
-        // Agentic loop — keep going until Claude stops calling tools
+        // Agentic loop — keep going until model stops calling tools
         while (true) {
-          const response = await client.messages.create({
-            model: "claude-opus-4-5",
+          const response = await client.chat.completions.create({
+            model: MODEL,
             max_tokens: 8192,
-            system: systemPrompt,
             tools: travelTools,
+            tool_choice: "auto",
             messages,
           });
 
+          const choice = response.choices[0];
+          const message = choice.message;
+
           // Stream any text content immediately
-          for (const block of response.content) {
-            if (block.type === "text" && block.text.trim()) {
-              send({ type: "text", text: block.text });
-            }
+          if (message.content?.trim()) {
+            send({ type: "text", text: message.content });
           }
 
-          // If done, break
-          if (response.stop_reason === "end_turn") {
+          // If done (no tool calls), break
+          if (choice.finish_reason === "stop" || !message.tool_calls?.length) {
             send({ type: "done" });
             break;
           }
 
-          // Handle tool calls
-          const toolUseBlocks = response.content.filter(
-            (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
-          );
-
-          if (toolUseBlocks.length === 0) {
-            send({ type: "done" });
-            break;
-          }
-
-          // Add assistant message
-          messages.push({ role: "assistant", content: response.content });
+          // Add the assistant message (with tool_calls) to history
+          messages.push(message);
 
           // Execute each tool + call ShieldEx middleware for payment
-          const toolResults: Anthropic.ToolResultBlockParam[] = [];
+          for (const toolCall of message.tool_calls) {
+            const toolName = toolCall.function.name;
+            const toolInput = JSON.parse(toolCall.function.arguments || "{}") as Record<string, unknown>;
+            const toolCost = TOOL_COST[toolName] ?? 0.005;
 
-          for (const toolBlock of toolUseBlocks) {
-            const toolCost = TOOL_COST[toolBlock.name] ?? 0.005;
-
-            // Stream tool call start (with pending payment indicator)
+            // Stream tool call start
             send({
               type: "tool_call",
-              tool: toolBlock.name,
-              input: toolBlock.input,
-              id: toolBlock.id,
+              tool: toolName,
+              input: toolInput,
+              id: toolCall.id,
               cost: toolCost,
             });
 
             // Execute tool (simulated API data)
             await new Promise((r) => setTimeout(r, 300));
-            const result = executeTool(toolBlock.name, toolBlock.input as Record<string, unknown>);
-            const parsedResult = JSON.parse(result);
+            const result = executeTool(toolName, toolInput);
+            const parsedResult = JSON.parse(result) as Record<string, unknown>;
 
             // ── ShieldEx on-chain payment ──────────────────────────────────
-            // Each tool call triggers a real USDC micropayment enforced by the
-            // Soroban smart contract (max_per_tx + daily_cap + allowed_destinations).
-            const payReason = `${toolBlock.name.replace(/_/g, " ")} for trip to ${to}`;
+            const payReason = `${toolName.replace(/_/g, " ")} for trip to ${to}`;
             const payResult = await callShieldExPay(toolCost, payReason);
 
             // Stream tool result with payment proof
             send({
               type: "tool_result",
-              tool: toolBlock.name,
-              id: toolBlock.id,
+              tool: toolName,
+              id: toolCall.id,
               result: parsedResult,
               cost: toolCost,
-              provider: parsedResult.api_provider,
-              // ShieldEx payment fields
+              provider: parsedResult.api_provider as string,
               payment: {
                 status: payResult.status,
                 tx_hash: payResult.tx_hash,
@@ -454,15 +479,13 @@ Please research this trip thoroughly using all available tools, then create a co
               },
             });
 
-            toolResults.push({
-              type: "tool_result",
-              tool_use_id: toolBlock.id,
+            // Add tool result to message history (OpenAI "tool" role)
+            messages.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
               content: result,
             });
           }
-
-          // Add tool results to messages
-          messages.push({ role: "user", content: toolResults });
         }
       } catch (err) {
         console.error("Plan API error:", err);
