@@ -411,6 +411,14 @@ export default function PlanDashboard() {
   const startedRef = useRef(false);
   const feedRef = useRef<HTMLDivElement>(null);
 
+  // Guard: redirect to home if required params are missing
+  useEffect(() => {
+    if (!from || !to || !startDate || !endDate || !budget) {
+      router.replace("/");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Fetch live policy from middleware
   const fetchPolicy = useCallback(async () => {
     try {
