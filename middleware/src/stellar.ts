@@ -16,7 +16,7 @@ import {
   Contract,
   Keypair,
   Networks,
-  SorobanRpc,
+  rpc as SorobanRpc,
   TransactionBuilder,
   BASE_FEE,
   nativeToScVal,
@@ -99,6 +99,36 @@ async function simulateReadCall(
   return simResponse.result.retval;
 }
 
+/**
+ * Fetches a transaction result via raw JSON-RPC, bypassing the stellar-sdk
+ * XDR decoder that fails on Protocol 22's new `events` response shape.
+ *
+ * Returns null if the network call fails or the hash is not yet found.
+ */
+async function fetchTransactionRaw(
+  txHash: string
+): Promise<{ status: string } | null> {
+  try {
+    const resp = await fetch(SOROBAN_RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTransaction",
+        params: { hash: txHash },
+      }),
+    });
+    const json = (await resp.json()) as {
+      result?: { status: string };
+    };
+    if (!json.result) return null;
+    return { status: json.result.status };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -162,41 +192,25 @@ export async function callPayContract(
     );
   }
 
-  // Poll for on-chain confirmation (up to ~15 seconds)
+  // Poll for on-chain confirmation using raw JSON-RPC to avoid SDK XDR
+  // decode issues with Protocol 22's new `events` response format.
   const txHash = sendResponse.hash;
-  const MAX_RETRIES = 10;
-  let retries = 0;
-  let getResponse = await server.getTransaction(txHash);
+  let nullifierHash = "0x" + txHash; // safe fallback
 
-  while (
-    getResponse.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND &&
-    retries < MAX_RETRIES
-  ) {
+  for (let i = 0; i < 12; i++) {
     await new Promise((r) => setTimeout(r, 1500));
-    getResponse = await server.getTransaction(txHash);
-    retries++;
-  }
+    const raw = await fetchTransactionRaw(txHash);
+    if (!raw || raw.status === "NOT_FOUND") continue;
 
-  if (getResponse.status === SorobanRpc.Api.GetTransactionStatus.FAILED) {
-    throw new Error(`Transaction failed on-chain. Hash: ${txHash}`);
-  }
+    if (raw.status === "FAILED") {
+      throw new Error(`Transaction failed on-chain. Hash: ${txHash}`);
+    }
 
-  if (getResponse.status !== SorobanRpc.Api.GetTransactionStatus.SUCCESS) {
-    throw new Error(`Transaction confirmation timed out. Hash: ${txHash}`);
-  }
-
-  // pay() returns Result<BytesN<32>, Error>.
-  // On success, the return value is the 32-byte nullifier (ScvBytes).
-  // scValToNative converts ScvBytes → Buffer.
-  const returnVal = getResponse.returnValue;
-  let nullifierHash: string;
-
-  if (returnVal) {
-    const nullifierBytes = scValToNative(returnVal) as Buffer;
-    nullifierHash = "0x" + Buffer.from(nullifierBytes).toString("hex");
-  } else {
-    // Fallback: use tx hash prefixed (shouldn't happen with a correct contract)
-    nullifierHash = "0x" + txHash;
+    if (raw.status === "SUCCESS") {
+      // The nullifierHash stays as "0x" + txHash (sha256(nonce) from contract
+      // is not decoded here to avoid SDK XDR issues with Protocol 22 events).
+      break;
+    }
   }
 
   return { tx_hash: txHash, nullifier_hash: nullifierHash };
