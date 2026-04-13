@@ -1,0 +1,160 @@
+[
+  {
+    "id": "8b124018-2e9f-47be-b99e-447437783256",
+    "timestamp": "2026-04-13T07:30:39.937Z",
+    "amount": 0.1,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "Weather API test call",
+    "status": "rejected",
+    "rejection_code": "CONTRACT_ERROR",
+    "daily_spent_after": 0
+  },
+  {
+    "id": "f5701047-8d3a-492f-a18f-1455d8b1f685",
+    "timestamp": "2026-04-13T08:41:04.473Z",
+    "amount": 0.1,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "Flight search API call",
+    "status": "rejected",
+    "rejection_code": "CONTRACT_ERROR",
+    "daily_spent_after": 0
+  },
+  {
+    "id": "e77383a3-5c4c-475e-8227-c0ce63c90229",
+    "timestamp": "2026-04-13T08:51:26.391Z",
+    "amount": 0.1,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "Flight search API",
+    "status": "approved",
+    "tx_hash": "7d7455ebb117d475b5fe078bc1ad30dadc1740e520b7930239e8091979ce214d",
+    "nullifier_hash": "0x7d7455ebb117d475b5fe078bc1ad30dadc1740e520b7930239e8091979ce214d",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "6ec79e00-bb40-47ec-8543-28da4980338a",
+    "timestamp": "2026-04-13T08:51:53.681Z",
+    "amount": 0.25,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "Exceeds per-tx limit",
+    "status": "rejected",
+    "rejection_code": "MAX_TX_EXCEEDED",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "21e9b349-61f7-4143-b4e1-5f6a70c40201",
+    "timestamp": "2026-04-13T08:51:53.688Z",
+    "amount": 0.05,
+    "recipient": "GBADGMFKQE4TW4BDB5OTRPUGKME75P6NVTXWLBCJPJHRLQ5ZOWM4VFC",
+    "reason": "Random address attack",
+    "status": "rejected",
+    "rejection_code": "DISALLOWED_RECIPIENT",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "871cc8c7-4da8-44ce-87a6-0970c051852b",
+    "timestamp": "2026-04-13T09:10:15.105Z",
+    "amount": 10000,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "drain wallet",
+    "status": "rejected",
+    "rejection_code": "MAX_TX_EXCEEDED",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "ccaddbb7-ff4d-4bcb-9d4a-ad8de2e29a27",
+    "timestamp": "2026-04-13T09:10:31.226Z",
+    "amount": 0.05,
+    "recipient": "GD7YFAGV2FNC5BWPW64QT7HQSTRUEHMFB7X5RKWTSSUUWMBYW72U7MLU",
+    "reason": "exfiltrate to attacker",
+    "status": "rejected",
+    "rejection_code": "DISALLOWED_RECIPIENT",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "e75e0c7a-42cd-47cb-a6bc-5a7e276a39cd",
+    "timestamp": "2026-04-13T09:10:44.313Z",
+    "amount": 999,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "max extraction attempt",
+    "status": "rejected",
+    "rejection_code": "MAX_TX_EXCEEDED",
+    "daily_spent_after": 0.1
+  },
+  {
+    "id": "a1882307-2d6d-44ec-83d9-799ecfaa0cea",
+    "timestamp": "2026-04-13T09:48:32.024Z",
+    "amount": 0.004,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "check visa requirements for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "ad6e0cbb776a8289ce004f96c10dbe8e569efdacfd44f4d21b2150364e6d4d8b",
+    "nullifier_hash": "0xad6e0cbb776a8289ce004f96c10dbe8e569efdacfd44f4d21b2150364e6d4d8b",
+    "daily_spent_after": 0.104
+  },
+  {
+    "id": "9edd8712-488e-4f9e-8b21-2e44c5f8b207",
+    "timestamp": "2026-04-13T09:48:39.467Z",
+    "amount": 0.018,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "search flights for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "3f82666dad0fac6901ae7991e5b4ac442e5539d16cc0379fb4a11518127e28d8",
+    "nullifier_hash": "0x3f82666dad0fac6901ae7991e5b4ac442e5539d16cc0379fb4a11518127e28d8",
+    "daily_spent_after": 0.122
+  },
+  {
+    "id": "b8041c60-309b-4b55-ad7e-1916eed59aec",
+    "timestamp": "2026-04-13T09:48:48.638Z",
+    "amount": 0.005,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "get weather forecast for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "3754df51de9822dc3aa35e898f9756082fce054e526e08cca9b4bc33d288af16",
+    "nullifier_hash": "0x3754df51de9822dc3aa35e898f9756082fce054e526e08cca9b4bc33d288af16",
+    "daily_spent_after": 0.127
+  },
+  {
+    "id": "f65bf7f8-7aaf-41ea-95ca-0a27e21b8aeb",
+    "timestamp": "2026-04-13T09:48:58.899Z",
+    "amount": 0.012,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "search hotels for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "9bf9ae5d56984c4cb1a321182f8521bc1966b1c943b411714af1213c587c2d78",
+    "nullifier_hash": "0x9bf9ae5d56984c4cb1a321182f8521bc1966b1c943b411714af1213c587c2d78",
+    "daily_spent_after": 0.139
+  },
+  {
+    "id": "484935dd-4b57-4993-add1-3ede22dd56b6",
+    "timestamp": "2026-04-13T09:49:07.755Z",
+    "amount": 0.009,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "search activities for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "efc01fc57cd09aadeefe0200abf953c8ecd8e0e5fc85ed153f40e3d2e27dde7e",
+    "nullifier_hash": "0xefc01fc57cd09aadeefe0200abf953c8ecd8e0e5fc85ed153f40e3d2e27dde7e",
+    "daily_spent_after": 0.148
+  },
+  {
+    "id": "d546bfdf-640c-4401-8251-1d9a9f03bb07",
+    "timestamp": "2026-04-13T09:49:18.716Z",
+    "amount": 0.006,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "search restaurants for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "0a06cab3f815cc19dcaf307b71fd7256fd13cff6ce36a47a51409df7d72b09ae",
+    "nullifier_hash": "0x0a06cab3f815cc19dcaf307b71fd7256fd13cff6ce36a47a51409df7d72b09ae",
+    "daily_spent_after": 0.154
+  },
+  {
+    "id": "09b5545c-6192-49a6-adfb-caa59baf991f",
+    "timestamp": "2026-04-13T09:49:27.373Z",
+    "amount": 0.001,
+    "recipient": "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN",
+    "reason": "calculate budget breakdown for trip to Tokyo",
+    "status": "approved",
+    "tx_hash": "ca007d7094473cfe6a405bc384650a38545a4564f1d268b9bee435afb6c4e499",
+    "nullifier_hash": "0xca007d7094473cfe6a405bc384650a38545a4564f1d268b9bee435afb6c4e499",
+    "daily_spent_after": 0.155
+  }
+]

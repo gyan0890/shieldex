@@ -7,13 +7,16 @@ const client = new OpenAI({
   baseURL: "https://api.venice.ai/api/v1",
 });
 
-// Model with function-calling support on Venice
-const MODEL = "llama-3.3-70b";
+// mistral-small-2603 has the most reliable multi-round tool_calls on Venice
+const MODEL = "mistral-small-2603";
 
-// The one whitelisted payment destination in the on-chain policy
-const AGENT_RECIPIENT =
+// The one whitelisted payment destination in the on-chain policy.
+// .trim() is critical — bash here-strings (<<<) add a trailing \n to Vercel env vars
+// which causes Address.fromString() to throw "invalid address".
+const AGENT_RECIPIENT = (
   process.env.NEXT_PUBLIC_AGENT_RECIPIENT ??
-  "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN";
+  "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN"
+).trim();
 
 // ── ShieldEx payment call ──────────────────────────────────────────────────────
 // Calls Soroban directly (no HTTP round-trip) — works on Vercel serverless.
@@ -408,7 +411,9 @@ Please research this trip thoroughly using all available tools, then create a co
             send({ type: "text", text: message.content });
           }
 
-          // If done (no tool calls), break
+          // If done (no tool calls), break.
+          // Some Venice models fall back to text-format "<function=name={...}>" syntax
+          // when finish_reason is "stop" — treat that as a normal text completion.
           if (choice.finish_reason === "stop" || !message.tool_calls?.length) {
             send({ type: "done" });
             break;

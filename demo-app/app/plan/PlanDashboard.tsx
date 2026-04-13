@@ -3,12 +3,14 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 
-const MIDDLEWARE_URL =
-  process.env.NEXT_PUBLIC_MIDDLEWARE_URL ?? "http://localhost:3001";
+const MIDDLEWARE_URL = (
+  process.env.NEXT_PUBLIC_MIDDLEWARE_URL ?? "http://localhost:3001"
+).trim();
 
-const AGENT_RECIPIENT =
+const AGENT_RECIPIENT = (
   process.env.NEXT_PUBLIC_AGENT_RECIPIENT ??
-  "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN";
+  "GBTPELPBLNHYSFX6EIIMTMOVH62R5RDN2CEQB5D62WOXULVMJUGVV5JN"
+).trim();
 
 // --- Types ---
 interface PaymentInfo {

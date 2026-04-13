@@ -26,11 +26,14 @@ const STROOP = 10_000_000n; // 1 USDC = 10_000_000 base units
 const SOROBAN_RPC_URL = "https://soroban-testnet.stellar.org";
 
 function getConfig() {
-  const agentSecretKey = process.env.AGENT_SECRET_KEY ?? "";
-  const contractId =
+  // .trim() is critical — bash here-strings (<<<) add a trailing newline,
+  // which would cause Keypair.fromSecret() to throw "invalid encoded string".
+  const agentSecretKey = (process.env.AGENT_SECRET_KEY ?? "").trim();
+  const contractId = (
     process.env.CONTRACT_ADDRESS ??
     process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ??
-    "CCRJTH7RJLNTXQYTMNSXZZRVGFDIAXDAOYNVSROPDUJ3BVVATNUSNPE6";
+    "CCRJTH7RJLNTXQYTMNSXZZRVGFDIAXDAOYNVSROPDUJ3BVVATNUSNPE6"
+  ).trim();
   return { agentSecretKey, contractId };
 }
 
